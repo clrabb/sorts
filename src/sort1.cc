@@ -13,6 +13,10 @@ int main()
     words.print_all();
 
     printf( "%s\n", words[ 0 ] );
+    printf( "There are %d nodes\n", words.size() );
+
+    bool cycle = words.has_cycle();
+    printf( "Is there a cycle: %s\n", cycle ? "Yes" : "No" );
 
     return 0;
 }

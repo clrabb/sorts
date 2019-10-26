@@ -53,3 +53,54 @@ linked_array::operator[] ( int index )
 
     return n->word();
 }
+
+int
+linked_array::size()
+{
+    if ( this->m_head == 0 )
+        return 0;
+
+    int size = 0;
+    node* current_node = this->m_head;
+    while( true )
+    {
+        ++size;
+        if ( current_node->next() == 0 )
+            break;
+        else
+            current_node = current_node->next();
+    }
+
+    return size;
+}
+
+bool
+linked_array::has_cycle()
+{
+    if ( m_head == 0 )
+        return false;
+
+    bool retval = false;
+    node* current_node = m_head;
+    while( true )
+    {
+        if ( current_node->has_seen() )
+        {
+            retval = true;
+            break;
+        }
+        else if ( current_node->is_end() )
+        {
+            break;
+        }
+        else
+        {
+            current_node = current_node->next();
+        }
+    }
+
+    return retval;
+    
+}
+
+
