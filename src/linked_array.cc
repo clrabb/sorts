@@ -1,6 +1,15 @@
 #include "linked_array.h"
 #include "node.h"
-#include "stdio.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+linked_array::linked_array()
+    : m_head( 0 ),
+      m_tail( 0 ),
+      m_ptr_end_idx( 0 )
+
+{
+}
 
 void
 linked_array::push_back( const char* str, int len )
@@ -17,6 +26,7 @@ linked_array::push_back( const char* str, int len )
         this->m_tail->next( n );
         this->m_tail = n;
     }
+    m_ptrs[ m_ptr_end_idx++ ] = n;
 }
 
 void 
@@ -34,6 +44,13 @@ linked_array::print_all()
 
         n = n->next();
     }
+}
+
+void
+linked_array::print_item_at( int index )
+{
+   node* item = m_ptrs[ index ];
+   printf( "%s\n", item->word() );
 }
 
 const char*
@@ -100,7 +117,6 @@ linked_array::has_cycle()
     }
 
     return retval;
-    
 }
 
 
