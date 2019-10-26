@@ -90,4 +90,3 @@ node* selection_sort( node* head )
     return result;
 }
 
-kkk
