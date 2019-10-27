@@ -4,8 +4,8 @@
 #include <cstdio>
 
 node* selection_sort( node* head );
+node* snip_smallest( node* head );
 node* find_smallest( node* head );
-
 void remove_newline( char* buffer )
 {
     buffer[ strcspn( buffer, "\n" ) ] = 0;
@@ -84,9 +84,71 @@ node* selection_sort( node* head )
     node* result = new node();
     while ( head != 0 )
     {
-        node* smallest = find_smallest( head );
+        break;    
     }
 
     return result;
 }
 
+node* snip_smallest( node* head )
+{
+    node* smallest = find_smallest( head );
+    node* retval = new node();
+    retval->word( smallest->word(), strlen( smallest->word() ) );
+    /*snip( smallest );*/
+    return retval;
+}
+
+node* find_smallest( node* head )
+{
+    node* current_node;
+    node* smallest_node;
+    current_node  = head;
+    smallest_node = head;
+
+    /* 
+    while ( true )
+    {
+        if ( current_node->is_only() )
+        {
+            smallest_node = current_node;
+            break;
+        }
+    }
+    */
+
+    return smallest_node;
+}
+
+int strcmp_nodes( node* lhs, node* rhs )
+{
+    const char* current_word = lhs->word();
+    const char* next_word    = rhs->word();
+
+    return strcmp( current_word, next_word );
+}
+
+void snip( node* node_to_snip )
+{
+    node* parent = 0;
+    node* child  = 0;
+
+    if ( node_to_snip->is_only() )
+    {
+        node_to_snip = 0;
+    }
+    
+    if ( node_to_snip->is_middle() )
+    {
+        parent = node_to_snip->previous();
+        child  = node_to_snip->next();
+
+        parent->next( child );
+        child->previous( parent );
+    }
+    else // It's the last
+    {
+        parent = node_to_snip->previous();
+        parent->next( 0 );
+    }
+}

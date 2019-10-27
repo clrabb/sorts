@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 void 
 node::word( const char* in_word, int len )
 {
@@ -11,6 +12,7 @@ node::word( const char* in_word, int len )
 	mem[ len ] = 0;
 	this->m_word = mem;
 }
+
 
 const char*
 node::word()
