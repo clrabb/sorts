@@ -4,6 +4,11 @@
 #include <stdlib.h>
 
 
+node::~node()
+{
+    free( this->m_word );
+}
+
 void 
 node::word( const char* in_word, int len )
 {

@@ -106,7 +106,7 @@ linked_array::has_cycle()
             retval = true;
             break;
         }
-        else if ( current_node->is_end() )
+        else if ( current_node->is_last() )
         {
             break;
         }

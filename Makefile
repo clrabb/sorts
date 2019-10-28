@@ -2,17 +2,17 @@ src = $(wildcard src/*.cc)
 obj = $(src:.cc=.o)
 dep = $(obj:.o=.d)
 
-LDFLAGS = 
-CFLAGS = 
-CC = g++
+LDFLAGS = -g
+CPPFLAGS = -g
+CPP = g++
 
 sort1: $(obj)
-	$(CC) -o $@ $^ $(LDFLAGS)
+	$(CPP) $(CPPFLAGS) -o $@ $^ $(LDFLAGS) 
 
 -include $(dep)
 
 %.d: %.cc
-	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
+	@$(CC) $(CPPFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
 .PHONY: clean
 clean:

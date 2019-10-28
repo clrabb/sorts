@@ -6,6 +6,12 @@
 node* selection_sort( node* head );
 node* snip_smallest( node* head );
 node* find_smallest( node* head );
+void  snip( node* snip_me );
+int strcmp_nodes( node* lhs, node* rhs );
+
+
+
+
 void remove_newline( char* buffer )
 {
     buffer[ strcspn( buffer, "\n" ) ] = 0;
@@ -28,7 +34,7 @@ void print_count( node* head )
 {
     int cnt = 0;
     node* current_node = head;
-    while ( true )
+    while ( head != 0 )
     {
         ++cnt;
         if ( current_node->has_next() )
@@ -57,6 +63,9 @@ int main()
     FILE* file = fopen( "words.txt", "r" );
     while ( fgets( buffer, MAX_BUFF_SIZE, file ) != NULL  )
     {
+        if ( buffer[ 0 ] != '\n' )
+            continue;
+
         remove_newline( buffer );
         node* new_node = new node();
         new_node->word( buffer, strlen( buffer ) );
@@ -69,8 +78,8 @@ int main()
         }
         else
         {
-            tail->next( new_node );
             new_node->previous( tail );
+            tail->next( new_node );
             tail = new_node;
         }
     }
@@ -79,15 +88,53 @@ int main()
     node* new_list = selection_sort( head );
 }
 
-node* selection_sort( node* head )
+
+int count( node* head )
 {
-    node* result = new node();
-    while ( head != 0 )
+    int count = 0;
+    node* current_node = head;
+    while ( true )
     {
-        break;    
+        ++count;
+        if ( current_node->has_next() )
+            current_node = current_node->next();
+        else
+            break;
     }
 
-    return result;
+    return count;
+}
+
+node* selection_sort( node* head )
+{
+    node* new_head = new node();
+    node* new_tail = 0;
+    bool first     = true;
+
+
+    int loop_cnt = 0;
+    while ( head != 0 )
+    {
+        if ( first )
+        {
+            new_head = snip_smallest( head );
+            new_tail = new_head;
+            first = false;
+        }
+        else
+        {
+           new_tail->next( snip_smallest( head ) );
+           new_tail = new_tail->next();
+        }
+
+        if ( loop_cnt++ % 1 == 0 )
+        {
+            printf( "original list: %d\n", count( head ) );
+            printf( "new list: %d\n", count( new_head ) );
+        }
+    }
+
+    return new_head;
 }
 
 node* snip_smallest( node* head )
@@ -95,7 +142,7 @@ node* snip_smallest( node* head )
     node* smallest = find_smallest( head );
     node* retval = new node();
     retval->word( smallest->word(), strlen( smallest->word() ) );
-    /*snip( smallest );*/
+    snip( smallest );
     return retval;
 }
 
@@ -106,7 +153,6 @@ node* find_smallest( node* head )
     current_node  = head;
     smallest_node = head;
 
-    /* 
     while ( true )
     {
         if ( current_node->is_only() )
@@ -114,8 +160,28 @@ node* find_smallest( node* head )
             smallest_node = current_node;
             break;
         }
+        else if ( current_node->is_last() )
+        {
+            int retval = strcmp_nodes( current_node, smallest_node );
+            if ( retval < 0 )
+            {
+                smallest_node = current_node;
+            }
+
+            break;
+
+        }
+        else
+        {
+            int retval = strcmp_nodes( current_node, smallest_node );
+            if ( retval < 0 )
+            {
+                smallest_node = current_node;
+            }
+
+            current_node = current_node->next();
+        }
     }
-    */
 
     return smallest_node;
 }
@@ -137,18 +203,25 @@ void snip( node* node_to_snip )
     {
         node_to_snip = 0;
     }
-    
-    if ( node_to_snip->is_middle() )
+    else if ( node_to_snip->is_first() )
+    {
+        node* next_node = node_to_snip->next();
+        next_node->previous( 0 );
+    }
+    else if ( node_to_snip->is_middle() )
     {
         parent = node_to_snip->previous();
         child  = node_to_snip->next();
 
         parent->next( child );
         child->previous( parent );
+
     }
     else // It's the last
     {
         parent = node_to_snip->previous();
         parent->next( 0 );
     }
+
+    delete( node_to_snip );
 }

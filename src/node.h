@@ -26,7 +26,7 @@ node()
 
 // Destructor
 //
-~node() {}
+~node();
 
 // Make generated shit private so the compiler
 // can't make them
