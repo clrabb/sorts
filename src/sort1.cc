@@ -3,11 +3,13 @@
 #include <string.h>
 #include <cstdio>
 
-node** selection_sort( node** head );
+void selection_sort( node** head, node** new_list );
 node** find_smallest( node** head );
+void move_node( node** node_to_move, node** new_list );
 node** snip_smallest( node** head );
 void  disconnect( node** snip_me );
-int strcmp_nodes( node* lhs, node* rhs );
+int strcmp_nodes( node** lhs, node** rhs );
+void make_smallest_if_needed( node** lhs, node** rhs );
 
 
 
@@ -19,11 +21,18 @@ void remove_newline( char* buffer )
 
 void print_all( node* head )
 {
+    if ( head == 0 )
+        return;
+
     node* current_node = head;
-    while ( head != 0 )
+    while ( true )
     {
         printf( "%s\n", current_node->word() );
-        current_node = current_node->next();
+
+        if ( current_node->is_last() )
+            break;
+        else
+            current_node = current_node->next();
     }
 }
 
@@ -31,10 +40,13 @@ void print_count( node* head )
 {
     int cnt = 0;
     node* current_node = head;
-    while ( head != 0 )
+    while ( true )
     {
-        ++cnt;
-        if ( current_node->has_next() )
+        if ( head == 0 )
+        {
+            break;
+        }
+        else if ( current_node->has_next() )
         {
             current_node = current_node->next();
         }
@@ -42,6 +54,8 @@ void print_count( node* head )
         {
             break;
         }
+
+        ++cnt;
     }
 
     printf( "The number of nodes is: %d\n", cnt );
@@ -50,19 +64,24 @@ void print_count( node* head )
 
 int count( node* head )
 {
+    if ( head == 0 )
+        return 0;
+
     int count = 0;
     node* current_node = head;
     while ( true )
     {
-        ++count;
         if ( current_node->has_next() )
             current_node = current_node->next();
         else
             break;
+
+        ++count;
     }
 
     return count;
 }
+
 int main()
 {
 
@@ -97,132 +116,124 @@ int main()
     }
     fclose( file );
 
-    node* new_list = selection_sort( &head );
+    node* new_list = 0;
+    selection_sort( &head, &new_list );
 
     print_all( new_list );
 }
 
 
-node* selection_sort( node** head )
+void selection_sort( node** head, node** new_list_head )
 {
-    node* new_head = new node();
-    node* new_tail = 0;
-    bool first     = true;
-
+    bool   first          = true;
+    node** new_list_tail  = 0;
 
     int loop_cnt = 0;
     while ( (*head) != 0 )
     {
+        node** smallest = find_smallest( head );
         if ( first )
         {
-            new_head = snip_smallest( head );
-            new_tail = new_head;
+            move_node( smallest, new_list_head );
+            new_list_tail = new_list_head;
             first = false;
         }
         else
         {
-            node* next_node = snip_smallest( head );
-            new_tail->next( next_node );
-            new_tail = next_node;
+            move_node( new_list_tail, smallest );
         }
 
         if ( loop_cnt++ % 1 == 0 )
         {
             printf( "original list: %d\n", count( *head ) );
-            printf( "new list: %d\n", count( new_head ) );
+            printf( "new list: %d\n", count( *new_list_head ) );
         }
     }
-
-    return new_head;
 }
 
-node* snip_smallest( node** head )
+node** find_smallest( node** head )
 {
-    
-    node* smallest = find_smallest( head );
-    node* retval = new node();
-    retval->word( smallest->word(), strlen( smallest->word() ) );
-    disconnect( smallest );
-    *smallest = 0;
+    // Early out, since there is only the one
+    // node in the list
+    //
+    if ( (*head)->is_only() )
+        return head;
 
-    return retval;
-}
-
-void disconnect( node* node_to_snip )
-{
-    node* parent = 0;
-    node* child  = 0;
-
-
-    if ( node_to_snip->is_only() )
-    {
-        node_to_snip = 0;
-    }
-    else if ( node_to_snip->is_first() )
-    {
-        node* next_node = node_to_snip->next();
-        next_node->previous( 0 );
-    }
-    else if ( node_to_snip->is_middle() )
-    {
-        parent = node_to_snip->previous();
-        child  = node_to_snip->next();
-
-        parent->next( child );
-        child->previous( parent );
-
-    }
-    else // It's the last
-    {
-        parent = node_to_snip->previous();
-        parent->next( 0 );
-    }
-}
-
-node* find_smallest( node* head )
-{
-    node* current_node;
-    node* smallest_node;
-    current_node  = *head;
-    smallest_node = *head;
+    node** current_node;
+    node** smallest_node;
+    current_node  = head;
+    smallest_node = head;
 
     while ( true )
     {
-        if ( current_node->is_only() )
-        {
-            smallest_node = current_node;
-            break;
-        }
-        else if ( current_node->is_last() )
-        {
-            int retval = strcmp_nodes( current_node, smallest_node );
-            if ( retval < 0 )
-            {
-                smallest_node = current_node;
-            }
+        // If the current_node is greater than the smallest we've seen, 
+        // Make the current the smallest
+        //
+        make_smallest_if_needed( smallest_node, current_node );
 
+        // Move to the next node
+        //
+        if ( (*current_node)->is_last() )
             break;
 
-        }
-        else
-        {
-            int retval = strcmp_nodes( current_node, smallest_node );
-            if ( retval < 0 )
-            {
-                smallest_node = current_node;
-            }
-
-            current_node = current_node->next();
-        }
+        node* next_node = (*current_node)->next();
+        current_node = &next_node;
     }
 
     return smallest_node;
 }
 
-int strcmp_nodes( node* lhs, node* rhs )
+void make_smallest_if_needed( node** lhs, node** rhs )
 {
-    const char* current_word = lhs->word();
-    const char* next_word    = rhs->word();
+    if ( strcmp_nodes( rhs, lhs ) < 0 )
+    {
+        *lhs = *rhs;
+    }
+}
+
+void move_node( node** node_to_move, node** new_list )
+{
+    if ( (*new_list) == 0 )
+    {
+        // list is empty
+        //
+        *new_list = *node_to_move;
+    } 
+    else
+    {
+       (*new_list)->next( *node_to_move ); 
+    }
+
+    if ( (*node_to_move)->is_first() && (*node_to_move)->has_next() )
+    {
+        node* next = (*node_to_move)->next();
+        next->previous( 0 );
+    }
+    else if ( (*node_to_move)->is_last() && (*node_to_move)->has_previous() )
+    {
+        node* previous = (*node_to_move)->previous();
+        previous->next( 0 );
+    }
+    else if ( (*node_to_move)->is_middle() )
+    {
+       node* next     = (*node_to_move)->next();
+       node* previous = (*node_to_move)->previous();
+
+       previous->next( next );
+       next->previous( previous );
+    }
+    else // Only
+    {
+        *node_to_move = 0;
+    }
+}
+
+
+int strcmp_nodes( node** lhs, node** rhs )
+{
+    const char* current_word = (*lhs)->word();
+    const char* next_word    = (*rhs)->word();
 
     return strcmp( current_word, next_word );
 }
+
